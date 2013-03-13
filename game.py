@@ -26,15 +26,16 @@ class Rock(GameElement):
             GAME_BOARD.draw_msg("You picked up a rock! I bet that can kill things or whatever.") 
 
 class Character(GameElement):
-    IMAGE = "Girl" # sets class attribute so your player is a girl
+    IMAGE = "Zelda" # sets class attribute so your player is a girl
     def __init__(self): # initializer that sets up object with initial values
         GameElement.__init__(self) # tells Character class to call parent class' initializer so that it uses the behaviors of board interactions set
         # self.inventory = []
         self.inventory = {
-            "BlueGem":0,
+            "Potion":0,
             "Rocks":0,
             "Hearts":0,
-            "Keys":0
+            "Keys":0,
+            "Torches":0
             } # this instance's inventory starts as an empty list
 
     def next_pos(self, direction): # when called, takes character and direction set by keyboard handler
@@ -65,6 +66,14 @@ class Link(GameElement):
     IMAGE = "DoorOpen"
     SOLID = False
 
+class Lamp(GameElement):
+    IMAGE = "UnlitTorch"
+    SOLID = False
+
+class Torch(GameElement):
+    IMAGE = "LitTorch"
+    SOLID = False
+
 class Door(GameElement):
     IMAGE = "DoorClosed"
     SOLID = False
@@ -92,7 +101,7 @@ class Key(GameElement):
         GAME_BOARD.draw_msg("You found a key!! Try opening something!")
 
 class Tree(GameElement):
-    IMAGE = "ShortTree"
+    IMAGE = "BestTree"
     SOLID = True
 
 class Chest(GameElement):
@@ -101,8 +110,8 @@ class Chest(GameElement):
     def interact(self, player):
         if player.inventory["Keys"] > 0:
             player.inventory["Keys"] -= 1
-            player.inventory["BlueGem"] += 1
-            GAME_BOARD.draw_msg("Hooray! It opens!! You got a blue gem which makes your total %d" % (player.inventory["BlueGem"]))
+            player.inventory["Potion"] += 1
+            GAME_BOARD.draw_msg("Hooray! It opens!! You got a potion which makes your total %d" % (player.inventory["Potion"]))
 
 
 class Heart(GameElement):
@@ -113,13 +122,13 @@ class Heart(GameElement):
         player.inventory["Hearts"] += 1
         GAME_BOARD.draw_msg("You now have %d extra lives! Use them wisely."%(player.inventory["Hearts"]))
 
-class BlueGem(GameElement):
-    IMAGE = "BlueGem" # sets attribute to be blue gem
+class GreenPotion(GameElement):
+    IMAGE = "Potion" # sets attribute to be blue gem
     SOLID = False
     def interact(self, player):
         # player.inventory.append(self.IMAGE)
-        player.inventory["BlueGem"] += 1
-        GAME_BOARD.draw_msg("You just got a gem! You have %d items! Go you!"%(player.inventory["BlueGem"]))
+        player.inventory["Potion"] += 1
+        GAME_BOARD.draw_msg("You just got a gem! You have %d items! Go you!"%(player.inventory["Potion"]))
         
         # player.bluecount(self) += 1
         print player.inventory
@@ -129,12 +138,12 @@ class DeathImage(GameElement):
     SOLID = True
 
 class OrangeGem(GameElement):
-    IMAGE = "OrangeGem"
+    IMAGE = "Bomb"
     SOLID = False
     def interact(self, player):
-        if player.inventory["BlueGem"] > 0:
-            player.inventory["BlueGem"] -= 1
-            GAME_BOARD.draw_msg("Oh THANK THE HEAVENS you had a blue gem! You would have died. You now have %d blue gems."%(player.inventory["BlueGem"]))
+        if player.inventory["Potion"] > 0:
+            player.inventory["Potion"] -= 1
+            GAME_BOARD.draw_msg("Oh THANK THE HEAVENS you had a blue gem! You would have died. You now have %d potions."%(player.inventory["Potion"]))
         elif player.inventory["Hearts"] > 0:
             player.inventory["Hearts"] -= 1
             GAME_BOARD.draw_msg("Oh THANK THE HEAVENS you had an extra life! You would have died. You now have %d extra lives."%(player.inventory["Hearts"]))
@@ -185,10 +194,14 @@ def keyboard_handler():
         # here we are using the returned tuple from next_pos to find character's new location
         #print next_location
 
-        if next_location == (6,2):
-            next_location = (1,6)
-        elif next_location == (1,6):
-            next_location = (6,2)
+        if next_location == (8,5):
+            next_location = (3,7)
+        elif next_location == (3,7):
+            next_location = (8,5)
+        elif next_location == (0,9):
+            next_location = (4,4)
+        elif next_location == (4,4):
+            next_location = (0,9)
         elif (next_location == (6, 1) or next_location == (5,0)) and (BADGUY.x, BADGUY.y) == (5,1):
             # delete player
             lastplayer = (PLAYER.x, PLAYER.y)
@@ -217,7 +230,7 @@ def keyboard_handler():
         if existing_el is None or not existing_el.SOLID:
             # if there's nothing there, or if the el's not solid, walk through
             
-            if existing_el and existing_el.SOLID and existing_el.IMAGE == "OrangeGem": # is an orange and is solid 
+            if existing_el and existing_el.SOLID and existing_el.IMAGE == "Bomb": # is an orange and is solid 
                 pass
             elif existing_el and existing_el.SOLID and existing_el.IMAGE == "Door":
                 pass
@@ -235,21 +248,25 @@ def initialize():
     global PLAYER
     PLAYER = Character()
     GAME_BOARD.register(PLAYER)
-    GAME_BOARD.set_el(3, 6, PLAYER)
+    GAME_BOARD.set_el(6, 9, PLAYER)
     print PLAYER
 
     #initialize badguy and location
     global BADGUY
     BADGUY = BadGuy()
     GAME_BOARD.register(BADGUY)
-    GAME_BOARD.set_el(5, 1, BADGUY)
+    GAME_BOARD.set_el(7, 2, BADGUY)
     print BADGUY
 
     # set rock positions
     rock_positions = [
-            (0, 0), 
-            (3, 2),
-            (2, 3)
+            (4,1), # this movable one is in the middle of nothing at the top of the screen
+            (9,4), # this movable one is by the orange gem minefield
+            (5,6),
+            (5,0),
+            (1,9),
+            (5,1),
+            (3,1)
             ]
     rocks = []
 
@@ -261,33 +278,38 @@ def initialize():
         rocks.append(rock)
     
     rocks[0].SOLID = False # sets the last rock in the last to NOT solid
+    rocks[1].SOLID = False
 
     for rock in rocks:
         print rock
 
+    potion_positions = [
+            (4,0)
+        ]
     
+    potions = []
     
-        """
-    for position in bluegem_positions:
-        bluegem = BlueGem()
-        GAME_BOARD.register(bluegem)
-        GAME_BOARD.set_el(position[0], position[1], bluegem)
-        blues.append(bluegem)
-"""
+    for position in potion_positions:
+        potion = GreenPotion()
+        GAME_BOARD.register(potion)
+        GAME_BOARD.set_el(position[0], position[1], potion)
+        potions.append(potion)
+
     orangegem_positions = [
-            (6, 5),
-            (5, 5),
-            (5, 6),
-            (5, 4),
-            (6, 4),
-            (4, 4),
-            (4, 5),
-            (4, 6)
+            (9,7),
+            (9,8),
+            (8,7),
+            (8,8),
+            (8,9),
+            (7,7),
+            (7,8),
+            (7,9),
+            (8,4),
+            (7,5)
         ]
     
     oranges = []
     
-
     for position in orangegem_positions:
         orangegem = OrangeGem()
         GAME_BOARD.register(orangegem)
@@ -295,16 +317,29 @@ def initialize():
         oranges.append(orangegem)
 
     wall_positions = [
-        (1, 1),
-        (1, 2),
-        (1, 5),
-        (2, 5),
-        (2, 6),
+        (0,6),
+        (1,6),
+        (2,6),
+        (3,6),
+        (4,6),
+        (4,7),
+        (4,8),
+        (4,9),
+        (3,3),
+        (3,4),
+        (3,5),
+        (3,3),
+        (4,3),
+        (5,3),
+        (5,4),
+        (5,5),
+        (4,6),
+        (2,9),
+        (3,9),
     ]
     
     walls = []
     
-
     for posi in wall_positions:
         wall = Wall()
         GAME_BOARD.register(wall)
@@ -312,10 +347,19 @@ def initialize():
         oranges.append(wall)
 
     tree_positions = [
-            (1, 0),
-            (2, 0),
-            (0, 5),
-            (2, 2)
+            (0,5),
+            (1,5),
+            (1,4),
+            (0,7),
+            (1,7),
+            (2,0),
+            (2,1),
+            (1,1),
+            (2,7),
+            (0,2),
+            (1,2),
+            (0,8),
+            (0,9)
         ]
     
     trees = []
@@ -325,26 +369,53 @@ def initialize():
         GAME_BOARD.register(tree)
         GAME_BOARD.set_el(posit[0], posit[1], tree)
         trees.append(tree)
-    trees[0].SOLID = False 
-    trees[1].SOLID = False 
+    trees[-1].SOLID = False 
+    trees[-2].SOLID = False 
+    trees[-3].SOLID = False 
+    trees[-4].SOLID = False 
 
 
     door = Door()
     GAME_BOARD.register(door)
-    GAME_BOARD.set_el(6, 6, door)
+    GAME_BOARD.set_el(9, 9, door)
 
-    heart = Heart()
-    GAME_BOARD.register(heart)
-    GAME_BOARD.set_el(6, 0, heart)
+    heart_positions = [
+            (4,5),
+            (8,1)
+        ]
+        
+    hearts = []
+        
+    for positi in heart_positions:
+        heart = Heart()
+        GAME_BOARD.register(heart)
+        GAME_BOARD.set_el(positi[0], positi[1], heart)
+        hearts.append(heart)
+
+    lamp_positions = [
+            (0,1),
+            (3,0),
+        ]
+    
+    lamps = []
+    
+    for positi in lamp_positions:
+        lamp = Lamp()
+        GAME_BOARD.register(lamp)
+        GAME_BOARD.set_el(positi[0], positi[1], lamp)
+        lamps.append(lamp)
 
     chest = Chest()
     GAME_BOARD.register(chest)
-    GAME_BOARD.set_el(2, 1, chest)
+    GAME_BOARD.set_el(0, 4, chest)
 
     key = Key()
     GAME_BOARD.register(key)
-    GAME_BOARD.set_el(0, 6, key)
+    GAME_BOARD.set_el(1, 8, key)
 
+    torch = Torch()
+    GAME_BOARD.register(torch)
+    GAME_BOARD.set_el(9, 5, torch)
 
 
     GAME_BOARD.draw_msg("Hurry, Zelda! Save Link by reaching the door.")

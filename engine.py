@@ -23,25 +23,31 @@ def setup_images():
     filenames = {
             "Wall": "Wall Block.png",
             "Block": "Plain Block.png",
+            "Bomb": "zelda_bomb.png",
             "GrassBlock": "Grass Block.png",
             "StoneBlock": "Stone Block.png",
             "ShortTree": "Tree Short.png",
             "TallTree": "Tree Tall.png",
+            "BestTree": "zelda_tree.png",
             "Rock": "Rock.png",
             "Chest": "Chest Closed.png",
             "DoorClosed": "Door Tall Closed.png",
             "DoorOpen": "Door Tall Open.png",
             "BlueGem": "Gem Blue.png",
+            "Potion": "Green_Potion.png",
             "GreenGem": "Gem Green.png",
             "OrangeGem": "Gem Orange.png",
             "Heart": "Heart.png",
+            "LitTorch": "lit_torch.png",
             "Key": "Key.png",
             "Boy": "Character Boy.png",
             "Cat": "Character Cat Girl.png",
             "Horns": "Character Horn Girl.png",
             "Girl": "Character Pink Girl.png",
             "Princess": "Character Princess Girl.png",
-            "SkullBones": "skullbones.png"
+            "Zelda": "zelda.png",
+            "SkullBones": "skullbones.png",
+            "UnlitTorch": "Torch.png"
             }
 
     for k,v in filenames.items():
